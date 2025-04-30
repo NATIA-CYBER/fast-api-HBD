@@ -48,10 +48,33 @@ def download_data(
 
     TIP: always clean the download folder before writing again to avoid having old files.
     """
+    # Create download directory
     download_dir = os.path.join(settings.raw_dir, "day=20231101")
+    os.makedirs(download_dir, exist_ok=True)
+    
+    # Clear existing files
+    for file in os.listdir(download_dir):
+        os.remove(os.path.join(download_dir, file))
+    
     base_url = settings.source_url + "/2023/11/01/"
-    # TODO Implement download
-
+    
+    # Download first 4 files
+    files_to_download = [
+        "000000Z.json.gz",
+        "000005Z.json.gz",
+        "000010Z.json.gz",
+        "000015Z.json.gz"
+    ]
+    
+    import requests
+    
+    for filename in files_to_download:
+        response = requests.get(f"{base_url}{filename}")
+        if response.status_code == 200:
+            output_path = os.path.join(download_dir, filename)
+            with open(output_path, "wb") as f:
+                f.write(response.content)
+    
     return "OK"
 
 
