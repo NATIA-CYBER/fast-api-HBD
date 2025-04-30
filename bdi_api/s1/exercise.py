@@ -3,6 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, status
 from fastapi.params import Query
+import requests
 
 from bdi_api.settings import Settings
 
@@ -11,62 +12,27 @@ settings = Settings()
 s1 = APIRouter(
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Not found"},
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Something is wrong with the request"},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Invalid request parameters"},
     },
     prefix="/api/s1",
     tags=["s1"],
 )
 
-
 @s1.post("/aircraft/download")
-def download_data(
-    file_limit: Annotated[
-        int,
-        Query(
-            ...,
-            description="""
-    Limits the number of files to download.
-    You must always start from the first the page returns and
-    go in ascending order in order to correctly obtain the results.
-    I'll test with increasing number of files starting from 100.""",
-        ),
-    ] = 100,
-) -> str:
-    """Downloads the `file_limit` files AS IS inside the folder data/20231101
-
-    data: https://samples.adsbexchange.com/readsb-hist/2023/11/01/
-    documentation: https://www.adsbexchange.com/version-2-api-wip/
-        See "Trace File Fields" section
-
-    Think about the way you organize the information inside the folder
-    and the level of preprocessing you might need.
-
-    To manipulate the data use any library you feel comfortable with.
-    Just make sure to configure it in the `pyproject.toml` file
-    so it can be installed using `poetry update`.
-
-
-    TIP: always clean the download folder before writing again to avoid having old files.
-    """
-    # Create download directory
+def download_data(file_limit: Annotated[int, Query(...)] = 100) -> str:
     download_dir = os.path.join(settings.raw_dir, "day=20231101")
     os.makedirs(download_dir, exist_ok=True)
     
-    # Clear existing files
     for file in os.listdir(download_dir):
         os.remove(os.path.join(download_dir, file))
     
     base_url = settings.source_url + "/2023/11/01/"
-    
-    # Download first 4 files
     files_to_download = [
         "000000Z.json.gz",
         "000005Z.json.gz",
         "000010Z.json.gz",
         "000015Z.json.gz"
     ]
-    
-    import requests
     
     for filename in files_to_download:
         response = requests.get(f"{base_url}{filename}")

@@ -9,8 +9,7 @@ app = FastAPI(
 )
 
 @app.get("/")
-async def root():
-    """Redirect root to API documentation"""
+def root():
     return RedirectResponse(url="/docs")
 
 app.include_router(s1)
