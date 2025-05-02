@@ -1,6 +1,9 @@
 # macOS system files
 .DS_Store
 
+# Project data
+data/
+
 # Python
 __pycache__/
 *.py[cod]
